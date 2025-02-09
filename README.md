@@ -16,10 +16,3 @@ DevOps practice using WSL or a VM on a personal device.
     In this project, we will implement DevOps practices where Jenkins will pull source code from a GitHub repository and automate the process. We will use SonarQube for added security and pull the Quality Gate result before building the Docker image for the web application. Once the build is complete, we will scan the image using Aqua Trivy for additional security. If either the build or the Quality Gate result fails, an email notification will be sent to the developer, and the same will apply for Aqua Trivy results. If both the Quality Gate and Aqua Trivy scans pass, the Docker image will be deployed locally, and the developer will be notified of a successful deployment.
   </p>
 </div>
-
-** Installing WSL with Linux Distribution **
-In your Windows Machine open Command Prompt or power shell and type: <br>
-
-   '''powershell 
-    wsl --install -d <distribution-name> 
-    '''
