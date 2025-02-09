@@ -3,7 +3,7 @@ DevOps practice using WSL or a VM on a personal device.
 <div> 
  <h1> Deploy a simple web application using a CI/CD pipeline on your personal device</h1>
   <h3>Disclaimer: The web application that will be deployed for this Stream Project is not owned by me.</h3>
-  <img src="./public/assets/StreamProject.jpg" alt="Logo" width="100%" height="100%">
+  <img src="./public/assets/pipeline.jpg" alt="Logo" width="100%" height="100%">
   <h1> Home Page</h1>
   <img src="./public/assets/home-page.png" alt="Logo" width="100%" height="100%">
   <h1>Netflix like Thumbnails</h1>
