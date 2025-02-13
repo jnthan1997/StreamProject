@@ -174,24 +174,65 @@ Now we are now done our initial Set up we will now explain and build the Docker 
 
    ***Dockerfile***
 ```bash
+#Build application on builder stage
 FROM node:16.17.0-alpine as builder
+#Set working directory
 WORKDIR /app
-COPY ./package.json .
-COPY ./package-lock.json .
+#copy json package from current directory
+COPY ./package*.json .
+#Build The application
 RUN npm install
+#Copy directory to next directory
 COPY . .
+#Declares Build argument for api key
 ARG TMDB_V3_API_KEY
+#Pass API KEY variable
 ENV VITE_APP_TMDB_V3_API_KEY=${TMDB_V3_API_KEY}
+#end point of API
 ENV VITE_APP_API_ENDPOINT_URL="https://api.themoviedb.org/3"
+#Install only production dependencies
 RUN npm run build
 
+#Build application for a runtime stage using nginx
 FROM nginx:stable-alpine
+#Serve file
 WORKDIR /usr/share/nginx/html
+#Run Clean state
 RUN rm -rf ./*
+#Copy Built files from builder stage to NGINX HTML Directory
 COPY --from=builder /app/dist .
+#Expose nginx to port 80
 EXPOSE 80
+#Entry point
 ENTRYPOINT ["nginx", "-g", "daemon off;"]
 ```
+- NOTE: The dockerfile is structured in two stage the Builder stage and Runtime Stage. Building the application using the nodejs16 image based on alpine linux Setting working directory to /app. Environment variables are set including API key and an API endpoint URL. Deploying or running the build application on stable version of nginx based on alpine linux run time stage, existing files on container image are removed ensuring a clean state and listens on port 80.
+
+ **2. Build Dockerfile using docker build**
+  - Before we Build let's make sure to create a account on TMDB as we will using the TMDB API keys to run our application. 
+  - After creating the TMBD account and retrieving own API key we will now set a Variable for API key within our WSL or Linux Distro
+    ```bash
+     #This will export your key within the machine. This is useful for sensitive information like API keys and passwords.
+     export TMDB_V3_API_KEY=your_api_key_here
+    ```
+
+  - docker build
+```bash
+   docker build --build-arg TMDB_V3_API_KEY=$TMDB_V3_API_KEY -p 8081:80 -t netflix .
+   #docker build - it is a command to build the docker container using dockerfile
+   #--build-arg is a command to build arguments within the dockerfile
+   #-p 8081:80 - exposing application in port 8081 and listening in port 80 on docker
+   #TMBD_V3_API_KEY=$TMDB_V3_APIKEY to pull api key variable within the machine
+   #-t $name_of_the_Image - naming the container we are building
+   #. - current directory where dockerfile is located
+```
+
+- Check the web application by opening it in any web browser of your choice at the address [ip-address]:8081
+- 
+  **Now That we Finished setting up the Docker we will now proceed on setting up Jenkins for CI/CD automation and deployment**
+    
+    
+
 
    
    
