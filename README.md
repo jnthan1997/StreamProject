@@ -230,6 +230,49 @@ ENTRYPOINT ["nginx", "-g", "daemon off;"]
 - Check the web application by opening it in any web browser of your choice at the address [ip-address]:8081
 - 
   **Now That we Finished setting up the Docker we will now proceed on setting up Jenkins for CI/CD automation and deployment**
+
+  ## Jenkins Installation and Setup
+
+**1. Install Jenkins**
+- Before Installing Jenkins ensure that Java JDK is currently installed on your device by running command:
+  ```bash
+  java --version
+  #it will show your JDK version if not install jdk by:
+  sudo apt-get install openjdk-17-jdk
+  #This will install and run the JDK, which is required for Jenkins, as Jenkins is developed using Java.
+  ```
+
+ - After JDK installation we will now Install the Jenkins:
+   ```bash
+   # to install LTS or LongTerm Support of Jenkins:
+   sudo wget -O /usr/share/keyrings/jenkins-keyring.asc \
+   https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+   echo "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc]" \
+   https://pkg.jenkins.io/debian-stable binary/ | sudo tee \
+   /etc/apt/sources.list.d/jenkins.list > /dev/null
+   sudo apt-get update
+   sudo apt-get install jenkins
+   ```
+ 
+ - After Jenkins installation enable and start jenkins:
+   ```bash
+   #enable jenkins
+   sudo systemctl enable jenkins
+   #start jenkins
+   sudo systemctl start jenkins
+   #check jenkins statu
+   sudo systemctl status jenkins
+   ```
+
+   **NOTE: Jenkins is running on port 8080 that is why on the earlier step we did we enable firewall port 8080 so we can run Jenkins in browser.
+   To open Jenkins open browser of your choice at the address [ip-address:8080]**
+
+   **2. Setup Jenkins**
+   
+   Now Jenkins is running on the system we will now setup Jenkins Interface
+   - Run Jenkins on your browser of your choice [ip-address:8080]
+   
+
     
     
 
