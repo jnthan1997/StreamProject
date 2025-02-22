@@ -271,9 +271,96 @@ ENTRYPOINT ["nginx", "-g", "daemon off;"]
    
    Now Jenkins is running on the system we will now setup Jenkins Interface
    - Run Jenkins on your browser of your choice [ip-address:8080]
-   
+   - Once Open Jenkins will show you the path for it's password
+   - Enter password then choose **Install Suggested Plugins**
+   - After the installation it will prompt you to page to create a account and specified a URL.
+   - Once Done we need to Install plugins needed for our project:
+     
+     **Go To " Manage Jenkins" > "Plugins" > "Available Plugins" then install the following plugins:**
+     
+      **Eclipse Temurin Installer**
+     
+      **SonarQube Scanner**
+     
+      **NodeJs Plugin**
+     
+      **Email Extension Plugin**
+     
+      **Eclipse Temurin Installer**
+     
+      **SonarQube Scanner**
+     
+      **NodeJs Plugin**
+     
+      **Email Extension Plugin**
 
+      **Docker**
+     
+      **Docker Commons**
+
+      **Docker Pipeline**
+
+      **Docker API**
+ 
+     - We will now configure the Plugins that we've been installed
+       **Configure Plugins**
+      **Go To "Manage Jenkins" > "Tools"**
+       - Locate JDK Installation add name "jdk17"
+       - Tick Install automaticaly
+       - Click "Add Installer" choose "Install From Adoptium"
+       - choose a Java version
+         
+       **Note: The Configuration above is the same process for NodeJS Plugin, SonarQube Scanner, Dependency Check Installation mention plugin can be found on the same tab**
+       
+      **Configure Jenkins Credentials**
+       **Go To "Manage Jenkins" > "Credentials"**
+       - 1.Click System
+       - 2.Click Global Credentilas
+       - 3.Click Add Credentials
+         Now before we continue Setup the SonarQube container based on the Guide **SonarQube Application Configuration**
+       - 5.On **Kind** section choose **Secret Text** then on **Secret** paste the generated token that we get on SonarQube
+       - 6.add ID for the SonarQube toke
+       - 7.click Create
+       - **Now Repeat the process 1 to 7 for the TMDB API Key(Kind: Secret Text), Docker(Kind: Username with Password) and Gmail(Kind: Username with Password)
     
+     **Configure Jenkins other Plugins**
+     **Go To "Manage Jenkins" > "System"**
+     **Locate "SonarQube servers"**
+     - Name: 'sonar-server'
+     - URL: [IP Address:9000]
+     - Choose the token for sonarqube
+       
+     **Locate "Extended Email Notification"**
+     - SMTP Server: smtp.gmail.com
+     - SMTP Port: 465
+     - Click Advance > Choose your Gmail Credentials and tick "Use SSL"
+     - Scroll Down a bit then click **"Build Triggers"** Tick **"Always"**
+    
+      **Locate "Email Notification"**
+     - SMTP Server: smtp.gmail.com
+     - SMTP Port: 465
+     - Click Advance
+     - Input your Email Address
+     - For the password use Application password of google
+    
+       **CLICK APPLY Then SAVE**
+       
+      ## SonarQube Application Configuration
+     
+     - run on shell
+     ```bash
+     docker run -d --name sonarqube -p 9000:9000 sonarqube
+     #this will run a latest container image of sonarqube in port 9000
+     ```
+    - Now Open SonarQube in browser [Ip Address:9000]
+    - login using Username: admin Password: admin
+    - After setting up account **Go to "Administration" > "Security" > "Users"**
+    - You'll see administrator on the tokens section click the three dots to generate token
+    - Enter the token name and click generate
+    - Copy the generate token it is needed for the credentials in Jenkins
+    - Now we will now set up the project on the SonarQube
+    - **Click Projects > Create Project > Local Project > Add Project Name > Click Next > tick "Use the Global Setting" > Create Project**
+    - Create a webhook for Jenkins on the Project created. Go To > Project Settings > Webhook > Create > Add you jenkins URL
     
 
 
