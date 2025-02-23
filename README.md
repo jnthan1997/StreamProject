@@ -344,6 +344,11 @@ ENTRYPOINT ["nginx", "-g", "daemon off;"]
      - For the password use Application password of google
     
        **CLICK APPLY Then SAVE**
+     **3. Creating New Pipeline**
+       **Go to Dashboard > New Item > Pipeline then OK**
+       - Put a Description of the project depend on the Description you want.
+       - Next Go to Pipeline and add the Jenkinsfile copy and paste it on the field.(using jenkinsfile will be discussed in the next project)
+       **(NOTE: How Groovy Script work on the Jenkinsfile are commented for people with less experience on groovyScript)**
        
       ## SonarQube Application Configuration
      
