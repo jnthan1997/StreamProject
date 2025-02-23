@@ -135,7 +135,7 @@ echo \
 sudo apt-get update
 ```
 
-**3. Instal Docker packages**
+**3. Install Docker packages**
 ```bash
 sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 ```
@@ -151,6 +151,12 @@ docker run hello-world
 sudo usermod -aG docker $username
 
 #this will help you to run docker without using root user
+
+sudo usermod -aG docker jenkins
+sudo systemctl restart jenkins
+
+#this will add jenkins to docker group for the automation script access docker NOTE: Use this command once the installation of jenkins is donce
+#If this command entered it will not be recognize as jenkins is not been made
 ```
 
 ## Build Docker image
@@ -228,8 +234,57 @@ ENTRYPOINT ["nginx", "-g", "daemon off;"]
 ```
 
 - Check the web application by opening it in any web browser of your choice at the address [ip-address]:8081
-- 
-  **Now That we Finished setting up the Docker we will now proceed on setting up Jenkins for CI/CD automation and deployment**
+
+ ## SonarQube & Trivy Application Installation and Configuration
+  
+   **1. SonarQube**
+   
+   - run on shell
+     
+     ```bash
+     docker run -d --name sonarqube -p 9000:9000 sonarqube
+     #this will run a latest container image of sonarqube in port 9000
+     ```
+     
+   - Now Open SonarQube in browser [Ip Address:9000]
+   - login using Username: admin Password: admin
+   - After setting up account **Go to "Administration" > "Security" > "Users"**
+   - You'll see administrator on the tokens section click the three dots to generate token
+   - Enter the token name and click generate
+   - Copy the generate token it is needed for the credentials in Jenkins
+   - Now we will now set up the project on the SonarQube
+   - **Click Projects > Create Project > Local Project > Add Project Name > Click Next > tick "Use the Global Setting" > Create Project**
+   - Create a webhook for Jenkins on the Project created. Go To > Project Settings > Webhook > Create > Add you jenkins URL
+
+   **2. Trivy Installation**
+   
+ - Install Required Packages
+     
+        ```bash
+        sudo apt-get update
+        sudo apt-get install wget apt-transport-https gnupg lsb-release
+        ```
+ - Add Trivy Repository Key:
+   
+        ```bash
+        wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
+        ```
+   
+ - Update Package Lists and Install Trivy:
+   
+        ```bash
+        sudo apt-get update
+        sudo apt-get install trivy
+        ```
+   
+ - Verify Installation:
+   
+        ```bash
+        trivy --version
+        ```
+    
+
+  **Now That we Finished setting up the Docker and SonarQube and trivy we will now proceed on setting up Jenkins for CI/CD automation and deployment**
 
   ## Jenkins Installation and Setup
 
@@ -318,10 +373,11 @@ ENTRYPOINT ["nginx", "-g", "daemon off;"]
        - 2.Click Global Credentilas
        - 3.Click Add Credentials
          Now before we continue Setup the SonarQube container based on the Guide **SonarQube Application Configuration**
-       - 5.On **Kind** section choose **Secret Text** then on **Secret** paste the generated token that we get on SonarQube
-       - 6.add ID for the SonarQube toke
-       - 7.click Create
-       - **Now Repeat the process 1 to 7 for the TMDB API Key(Kind: Secret Text), Docker(Kind: Username with Password) and Gmail(Kind: Username with Password)
+       - 4.On **Kind** section choose **Secret Text** then on **Secret** paste the generated token that we get on SonarQube
+       - 5.add ID for the SonarQube toke
+       - 6.click Create
+     
+       - **Now Repeat the process 1 to 6 for the TMDB API Key(Kind: Secret Text), Docker(Kind: Username with Password) and Gmail(Kind: Username with Password)**
     
      **Configure Jenkins other Plugins**
      **Go To "Manage Jenkins" > "System"**
@@ -344,29 +400,81 @@ ENTRYPOINT ["nginx", "-g", "daemon off;"]
      - For the password use Application password of google
     
        **CLICK APPLY Then SAVE**
+       
      **3. Creating New Pipeline**
        **Go to Dashboard > New Item > Pipeline then OK**
        - Put a Description of the project depend on the Description you want.
        - Next Go to Pipeline and add the Jenkinsfile copy and paste it on the field.(using jenkinsfile will be discussed in the next project)
-       **(NOTE: How Groovy Script work on the Jenkinsfile are commented for people with less experience on groovyScript)**
+         
+       **(NOTE: Groovy Script within the Jenkinsfile is commented for those less experienced with Groovy Script.)**
+
+     ## Install Monitoring Tool
        
-      ## SonarQube Application Configuration
-     
-     - run on shell
+     **1. Install Prometheus**
+
+     Create user dedicated User on Linux For Prometheus and Download the file using wget
      ```bash
-     docker run -d --name sonarqube -p 9000:9000 sonarqube
-     #this will run a latest container image of sonarqube in port 9000
+      sudo useradd --system --no-create-home --shell /bin/false prometheus
+      wget https://github.com/prometheus/prometheus/releases/download/v2.47.1/prometheus-2.47.1.linux-amd64.tar.gz
      ```
-    - Now Open SonarQube in browser [Ip Address:9000]
-    - login using Username: admin Password: admin
-    - After setting up account **Go to "Administration" > "Security" > "Users"**
-    - You'll see administrator on the tokens section click the three dots to generate token
-    - Enter the token name and click generate
-    - Copy the generate token it is needed for the credentials in Jenkins
-    - Now we will now set up the project on the SonarQube
-    - **Click Projects > Create Project > Local Project > Add Project Name > Click Next > tick "Use the Global Setting" > Create Project**
-    - Create a webhook for Jenkins on the Project created. Go To > Project Settings > Webhook > Create > Add you jenkins URL
-    
+
+     Extract file:
+
+     ```bash
+     tar -xvf prometheus-2.47.1.linux-amd64.tar.gz
+     cd prometheus-2.47.1.linux-amd64/
+     sudo mkdir -p /data /etc/prometheus
+     sudo mv prometheus promtool /usr/local/bin/
+     sudo mv consoles/ console_libraries/ /etc/prometheus/
+     sudo mv prometheus.yml /etc/prometheus/prometheus.yml
+     ```
+     
+     Set Ownership and Create a Systemd unit:
+     
+     ```bash
+     #Ownership
+     sudo chown -R prometheus:prometheus /etc/prometheus/ /data/
+
+     #Create SystemD unit
+     sudo nano /etc/systemd/system/prometheus.service
+     ```
+
+     Add the following content:
+
+     ```bash
+     [Unit]
+     Description=Prometheus
+     Wants=network-online.target
+     After=network-online.target
+
+     StartLimitIntervalSec=500
+     StartLimitBurst=5
+
+     [Service]
+     User=prometheus
+     Group=prometheus
+     Type=simple
+     Restart=on-failure
+     RestartSec=5s
+     ExecStart=/usr/local/bin/prometheus \
+       --config.file=/etc/prometheus/prometheus.yml \
+       --storage.tsdb.path=/data \
+       --web.console.templates=/etc/prometheus/consoles \
+       --web.console.libraries=/etc/prometheus/console_libraries \
+       --web.listen-address=0.0.0.0:9090 \
+       --web.enable-lifecycle
+     
+     [Install]
+     WantedBy=multi-user.target
+     ```
+
+     Enable Prometheus:
+
+     ```bash
+
+     sudo systemctl enable prometheus
+     sudo systemctl start prometheus
+     ```
 
 
    
