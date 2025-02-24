@@ -623,6 +623,9 @@ ENTRYPOINT ["nginx", "-g", "daemon off;"]
    and Project to retrieve quality gate result. after setting up SonarQube we installed trivy for Scanning docker image, next we proceed with the Jenkins Setup install necessarry plugins for our pipeline
    then we install monitoring tools to monitor our CI/CD pipeline using Grafana and Prometheus.
 
+   **NOTE: The steps Provided in this read me file is tested in AWS. What we just need to do is for ports is we need to change it the security group ports to access the tools and we will use EC2 instances with t2 large
+   or more with atleast 50gb of memory and will cost you dollar on using the AWS. That is why this project is created to have a practical practices using  ther own lab or computer.** 
+
    For troubleshooting steps and Questions, please feel free to message me.
    
 
