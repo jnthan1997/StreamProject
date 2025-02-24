@@ -356,6 +356,8 @@ ENTRYPOINT ["nginx", "-g", "daemon off;"]
       **Docker Pipeline**
 
       **Docker API**
+  
+      **Prometheus*
  
      - We will now configure the Plugins that we've been installed
        **Configure Plugins**
@@ -476,10 +478,152 @@ ENTRYPOINT ["nginx", "-g", "daemon off;"]
      sudo systemctl start prometheus
      ```
 
+     Check Prometheus status:
 
+     ```bash
+     sudo systemctl status prometheus
+     ```
+
+     After checking the status you may now access Prometheus on your browser [ip-address:9090]
+  
+     **Prometheus configuration:**
+  
+     configure Prometheus to scrape metrics and monitor CI/CD pipeline. We need to modify the prometheus.yaml
+  
+     ```bash
+          global:
+       scrape_interval: 15s
+     
+     scrape_configs:
+     
+       - job_name: 'jenkins'
+         metrics_path: '/prometheus'
+         static_configs:
+           - targets: ['<your-jenkins-ip>:<your-jenkins-port>']
+     ```
+     
+     Reload prometheus configuration without restarting
+  
+     ```bash
+     curl -X POST http://localhost:9090/-/reload
+     ```
+
+     **2.Node Exporter Installation**
+
+     Create a system user for Node Exporter and download Node Exporter:
+
+     ```bash
+     sudo useradd --system --no-create-home --shell /bin/false node_exporter
+     wget https://github.com/prometheus/node_exporter/releases/download/v1.6.1/node_exporter-1.6.1.linux-amd64.tar.gz
+     ```
+
+     Create a systemd unit configuration file for Node Exporter:
+
+     ```bash
+     sudo nano /etc/systemd/system/node_exporter.service
+     ```
+
+     Add the following content to the node_exporter.service file:
+
+     ```bash
+     [Unit]
+     Description=Node Exporter
+     Wants=network-online.target
+     After=network-online.target
+     
+     StartLimitIntervalSec=500
+     StartLimitBurst=5
+     
+     [Service]
+     User=node_exporter
+     Group=node_exporter
+     Type=simple
+     Restart=on-failure
+     RestartSec=5s
+     ExecStart=/usr/local/bin/node_exporter --collector.logind
+     
+     [Install]
+     WantedBy=multi-user.target
+     ```
+
+     Enable, Start and check status of Node Exporter
+
+     ```bash
+     sudo systemctl enable node_exporter
+     sudo systemctl start node_exporter
+     sudo systemctl status node_exporter
+     ```
+
+     **3. Install Grafana for metric dashboard**
+
+     Install Dependencies:
+
+     ```bash
+     sudo apt-get update
+     sudo apt-get install -y apt-transport-https software-properties-common
+     ```
+
+     Add GPG key:
+
+     ```bash
+     wget -q -O - https://packages.grafana.com/gpg.key | sudo apt-key add -
+     ```
+
+     Add Grafana repositories:
+     ```bash
+     wget -q -O - https://packages.grafana.com/gpg.key | sudo apt-key add -
+     ```
+
+     Update and Install Grafana:
+
+     ```bash
+     sudo apt-get update
+     sudo apt-get -y install grafana
+     ```
+
+     Enable, Start and check Status of Grafana:
+
+     ```bash
+     sudo systemctl enable grafana-server
+     sudo systemctl start grafana-server
+     sudo systemctl status grafana-server
+     ```
+     Access Grafana Server on browser by using [IP-Address:3000]
+     You'll be prompted in Grafana UI and default user and password is: admin
+
+     Import Dashboard in Grafana:
+
+     
+
+     - Click on the "+" (plus) icon in the left sidebar to open the "Create" menu.
+
+     - Select "Dashboard."
+   
+     - Click on the "Import" dashboard option.
+   
+     - Enter the dashboard code you want to import (e.g., code 1860).
+   
+     - Click the "Load" button.
+   
+     - Select the data source you added (Prometheus) from the dropdown.
+   
+     - Click on the "Import" button.
+
+    You should now have a Grafana dashboard set up to visualize metrics from Prometheus.
+
+    Grafana is a powerful tool for creating visualizations and dashboards, and you can further customize it to suit your specific monitoring needs.
    
    
-   
+   ## Summary of the Project
+
+   What we did in this project is we setup our environment using WSL or Oracle VirtualBox with Linux Ubuntu Image. We Open Ports and install SSH to access the System Remotely. After we set up
+   and open ports needed to access tools in browser. We Install Necessary Tools for our project Like Docker, Jenkins, SonarQube, Trivy, Prometheus, Node Exporter and Grafana.
+   We Set Up Docker run and build  the sample project Inorder to have a overview of the web application that we will deploy. Next is we export variable within our machine for our API key that we
+   retrieved in the TMDB website. This is a practice made to ensure the security of credentials such as password and APi Keys. Next we run SonarQube docker Image and setup its token, webhook for jenkins
+   and Project to retrieve quality gate result. after setting up SonarQube we installed trivy for Scanning docker image, next we proceed with the Jenkins Setup install necessarry plugins for our pipeline
+   then we install monitoring tools to monitor our CI/CD pipeline using Grafana and Prometheus.
+
+   For troubleshooting steps and Questions, please feel free to message me.
    
 
 
